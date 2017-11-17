@@ -4,8 +4,14 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var flash = require('connect-flash');
+var session = require('express-session');
 var expressHbs  = require('express-handlebars');
+var expressValidator = require('express-validator');
 var mongoose = require('mongoose');
+var passport = require('passport');
+
+require('./config/passport');
 
 var index = require('./routes/index');
 var users = require('./routes/users');
@@ -36,6 +42,44 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Express Session
+app.use(session({
+    secret: 'secret',
+    saveUninitialized: true,
+    resave: true
+}));
+
+// passport
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Express Validator
+app.use(expressValidator({
+    errorFormatter: function(param, msg, value) {
+        var namespace = param.split('.')
+            , root    = namespace.shift()
+            , formParam = root;
+
+        while(namespace.length) {
+            formParam += '[' + namespace.shift() + ']';
+        }
+        return {
+            param : formParam,
+            msg   : msg,
+            value : value
+        };
+    }
+}));
+
+// Connect Flash
+app.use(flash());
+
+// is logged in user
+app.use(function(req, res, next) {
+    res.locals.login = req.isAuthenticated();
+    next();
+});
 
 app.use('/', index);
 app.use('/user', users);
