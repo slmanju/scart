@@ -1,14 +1,28 @@
 var express = require('express');
 var router = express.Router();
+var passport = require('passport');
+var UserController = require("../controllers/users");
 
-/* GET users listing. */
-router.get('/', function(req, res, next) {
-  res.render("user/register", { title: "User Registration"});
+// register get
+router.get("/register", UserController.getRegister);
+
+// register post
+router.post("/register", UserController.postRegister);
+
+// login get form
+router.get("/login", UserController.getLogin);
+
+// login submit
+router.post('/login', passport.authenticate('local', {
+    failureRedirect: '/user/login',
+    failureFlash: 'Invalid username or password'
+}), function (req, res) {
+    console.log('Authentication Successful');
+    req.flash('success', 'You are logged in');
+    res.redirect('/');
 });
 
-// login form
-router.get("/login", function (req, res, next) {
-  res.render("user/login", { title: "Login" });
-});
+// logout
+router.get('/logout', UserController.logout);
 
 module.exports = router;
