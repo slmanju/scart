@@ -5,11 +5,18 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var expressHbs  = require('express-handlebars');
+var mongoose = require('mongoose');
 
 var index = require('./routes/index');
 var users = require('./routes/users');
 
 var app = express();
+
+// initialize database
+
+mongoose.connect("mongodb://localhost:27017/scart")
+    .then(() =>  console.log('connection succesful'))
+.catch((err) => console.error(err));
 
 // view engine setup
 app.engine('.hbs', expressHbs({
