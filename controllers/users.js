@@ -7,8 +7,8 @@ var UserController = {};
 
 // register get
 UserController.getRegister = function(req, res) {
-    var messages = req.flash('error');
-    res.render('user/signup', {
+    var messages = req.flash('messages');
+    res.render('user/register', {
         title: 'Register',
         csrfToken: req.csrfToken(), messages: messages, hasErrors: messages.length > 0
     });
@@ -16,24 +16,36 @@ UserController.getRegister = function(req, res) {
 
 // register post
 UserController.postRegister = function (req, res) {
-    req.checkBody('email', 'Invalid email').notEmpty().isEmail();
-    req.checkBody('password', 'Invalid password').notEmpty().isLength({min:4});
+    req.checkBody('email', 'Invalid email').isEmail();
+    req.checkBody('password', 'Invalid password').isLength({ min:4 });
     var errors = req.validationErrors();
     if (errors) {
         var messages = [];
         errors.forEach(function(error) {
             messages.push(error.msg);
         });
-        res.redirect("/users/register");
+        req.flash("messages", messages);
+        res.redirect('/user/register');
     } else {
-        var newUser = new User();
-        newUser.email = req.body.email;
-        newUser.password = newUser.encryptPassword(req.body.password);
-        newUser.save(function(err, result) {
-            if (err) throw err;
-            req.flash("success_msg", "You are registered");
-            res.location('/');
-            res.redirect('/');
+        User.findOne({ 'email': req.body.email }, function (err, user) {
+            if (err) {
+                throw err;
+            }
+            if (user) {
+                var messages = [];
+                messages.push("email is not available");
+                req.flash("messages", messages);
+                res.redirect('/user/register');;
+            } else {
+                var newUser = new User();
+                newUser.email = req.body.email;
+                newUser.password = newUser.encryptPassword(req.body.password);
+                newUser.save(function(err, result) {
+                    if (err) throw err;
+                    req.flash("success_msg", "You are registered");
+                    res.redirect('/');
+                });
+            }
         });
     }
 };
