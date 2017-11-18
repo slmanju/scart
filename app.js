@@ -10,6 +10,7 @@ var expressHbs  = require('express-handlebars');
 var expressValidator = require('express-validator');
 var mongoose = require('mongoose');
 var passport = require('passport');
+var MongoStore = require("connect-mongo")(session);
 
 require('./config/passport');
 
@@ -44,7 +45,13 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Express Session
-app.use(session({ secret: 'secret', saveUninitialized: false, resave: false }));
+app.use(session({
+    secret: 'secret',
+    saveUninitialized: false,
+    resave: false,
+    store: new MongoStore({ mongooseConnection: mongoose.connection }),
+    cookie: { maxAge: 180 * 60 * 1000 }
+}));
 
 // passport
 app.use(passport.initialize());
@@ -71,9 +78,10 @@ app.use(expressValidator({
 // Connect Flash
 app.use(flash());
 
-// is logged in user
+// global variables
 app.use(function(req, res, next) {
     res.locals.login = req.isAuthenticated();
+    res.locals.session = req.session;
     next();
 });
 
