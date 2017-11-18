@@ -7,8 +7,10 @@ var UserController = {};
 
 // register get
 UserController.getRegister = function(req, res) {
-    res.render('user/register', {
-        title: 'Register'
+    var messages = req.flash('error');
+    res.render('user/signup', {
+        title: 'Register',
+        csrfToken: req.csrfToken(), messages: messages, hasErrors: messages.length > 0
     });
 };
 
@@ -22,7 +24,7 @@ UserController.postRegister = function (req, res) {
         errors.forEach(function(error) {
             messages.push(error.msg);
         });
-        res.render('user/register', {/*csrfToken: req.csrfToken(), *//*messages: messages, hasErrors: messages.length > 0*/});
+        res.redirect("/users/register");
     } else {
         var newUser = new User();
         newUser.email = req.body.email;
@@ -39,7 +41,7 @@ UserController.postRegister = function (req, res) {
 // login get form
 UserController.getLogin = function (req, res) {
     res.render("user/login", {
-        title: "Login"
+        title: "Login", csrfToken: req.csrfToken()
     });
 };
 
